@@ -23,7 +23,6 @@ double calc_max(double inputdata[], int size){
             max = inputdata[i];
         }
     }
-    printf("max : %2.f\n",max);
     return max;
 }
 
@@ -34,7 +33,6 @@ double calc_min(double inputdata[], int size){
             min = inputdata[i];
         }
     }
-    printf("min : %2.f\n",min);
     return min;
 }
 
@@ -44,8 +42,20 @@ double calc_avg(double inputdata[], int size){
         sum += inputdata[i];
     } 
     double avg = (sum/size);
-    printf("avg : %2.f\n",avg);
     return avg;
+}
+
+void write_file(double max, double min, double avg){
+    FILE*file = fopen(filename, "w");
+    if(file == NULL){
+        printf("ERROR : could not open file %s .",filename);
+        return;
+    }
+    fprintf(file, "Max: %.2f\n", max);
+    fprintf(file, "Min: %.2f\n", min);
+    fprintf(file, "Avg: %.2f\n", avg);
+    fclose(file);
+
 }
 
 //functie word aangeroepen waneer bericht is verzonden op broker_publish
@@ -69,6 +79,12 @@ int message_arrived(void* context, char* topicname, int topicLen, MQTTClient_mes
     double max = calc_max(inputdata, tempindex);
     double min = calc_min(inputdata, tempindex);
     double avg = calc_avg(inputdata, tempindex);
+
+    printf("Max: %.2f\n",max);
+    printf("Min: %.2f\n",min);
+    printf("Avg: %.2f\n",avg);
+
+    write_file(max, min, avg);
 
     //opstellen output MSG
     char outputstr[OUTPUTSTR_LEN];

@@ -11,3 +11,4 @@ volatile MQTTClient_deliveryToken deliveredtoken;
 //definieren lengten
 #define OUTPUTSTR_LEN   256
 #define MAX_ELEM        256
+#define filename "output.txt"
