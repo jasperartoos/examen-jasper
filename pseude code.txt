@@ -1,0 +1,24 @@
+while 1
+Search messages
+END while
+
+als er een message is 
+
+input = message
+write input in file
+
+if input == end string
+print raport
+
+
+#print rapport
+print heading
+lezen bestand
+opdelen eerste lijn
+printen startwaarden
+
+printen totalen
+
+
+printen footer
+

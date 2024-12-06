@@ -1,67 +1,91 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <MQTTClient.h>
 #include "settings.h" //bestand met settings
 
-int extract_input(char *input, double inputdata[], int max_elem){
-    int index = 0;
-    char *token = strtok(input, ";");
-    
-    while (token != NULL && index < max_elem){
-        inputdata[index++] = atof(token);
-        token = strtok(NULL, ";");
-    }
-    return index;
 
-}
-
-double calc_max(double inputdata[], int size){
-    double max = inputdata[0];
-    for (int i = 1; i < size; i++){
-        if(inputdata[i] > max){
-            max = inputdata[i];
-        }
-    }
-    return max;
-}
-
-double calc_min(double inputdata[], int size){
-    double min = inputdata[0];
-    for (int i = 1; i < size; i++){
-        if(inputdata[i] < min){
-            min = inputdata[i];
-        }
-    }
-    return min;
-}
-
-double calc_avg(double inputdata[], int size){
-    double sum = 0.0;
-    for(int i = 0; i < size ; i++){
-        sum += inputdata[i];
-    } 
-    double avg = (sum/size);
-    return avg;
-}
-
-void write_file(double max, double min, double avg){
-    FILE*file = fopen(filename, "w");
-    if(file == NULL){
-        printf("ERROR : could not open file %s .",filename);
-        return;
-    }
-    fprintf(file, "Max: %.2f\n", max);
-    fprintf(file, "Min: %.2f\n", min);
-    fprintf(file, "Avg: %.2f\n", avg);
-    fclose(file);
-
-}
-
-//functie word aangeroepen waneer bericht is verzonden op broker_publish
 void delivered(void *context, MQTTClient_deliveryToken dt){
     deliveredtoken = dt;
 }
+
+void writefile(char *input){
+    FILE *fptr;
+
+// Open a file in writing mode
+fptr = fopen(filename3, "w");
+
+// Write some text to the file
+fprintf(fptr,"%s\n", input);
+
+// Close the file
+fclose(fptr);
+return;
+}
+
+
+void beginwaarde(){
+      FILE* file = fopen(filename, "r");
+      char buffer[1000];
+    
+     if (file == NULL) {
+        printf("Unable to open file: %s\n", filename);
+        return;
+    }
+  
+  if (fgets(buffer, sizeof(buffer), file) != NULL) {
+       // printf("First line: %s", buffer);
+
+printf("STARTWAARDE \n");
+printf(" \n");
+   char* split = strtok(buffer, ";");
+   printf("DATUM - TIJD :%s\n",split);
+    split = strtok(NULL, ";");
+    //printf("%s\n",split);
+    split = strtok(NULL, ";");
+    //printf("%s\n",split);
+    split = strtok(NULL, ";");
+    printf(" OBRENGST Dag : %s\n",split);
+    split = strtok(NULL, ";");
+    printf("DAG TOTAAL VERBRUIK: %s\n",split);
+    split = strtok(NULL, ";");
+    printf("Nacht Totaal Verbruik :%s\n",split);
+    split = strtok(NULL, ";");
+    printf("Obrengst nacHT :%s\n",split);
+    split = strtok(NULL, ";");
+    //printf("%s\n",split);
+    split = strtok(NULL, ";");
+   // printf("%s\n",split);
+    split = strtok(NULL, ";");
+    printf("Gas totaal :%s\n",split);
+    return;
+    } 
+    
+    else {
+        printf("Error reading from file.\n");
+    }
+
+        
+   fclose(file);
+    return;
+    }
+
+void print_end(){
+    printf("++++++++++++++++++++++++++++ \n");
+    printf("ELEKTRICITEIT + GAS VERBRUIK \n");
+    printf("++++++++++++++++++++++++++++ \n");
+    beginwaarde();
+
+
+      printf("++++++++++++++++++++++++++++ \n");
+    printf("EINDE RAPORT \n");
+    printf("++++++++++++++++++++++++++++ \n");
+
+    return;
+}
+//functie word aangeroepen waneer bericht is verzonden op broker_publish
+
 
 //functie word aangeroepen waneer bericht is aangekomen op broker_read
 int message_arrived(void* context, char* topicname, int topicLen, MQTTClient_message *message){
@@ -71,20 +95,15 @@ int message_arrived(void* context, char* topicname, int topicLen, MQTTClient_mes
     printf("Message arrived on topic: %s\n", topicname);
     printf("INPUT MSG : <%s> \n", input);
     
-    //splitsen string
-    double inputdata[MAX_ELEM];
-    int tempindex = extract_input(input, inputdata , MAX_ELEM);
+    writefile(input);
+      if (strcmp(input, END_MSG) == 0) {
+            printf("end! \n");
+            print_end();
+            return 0;
 
-    //bereken gegevens en (print)
-    double max = calc_max(inputdata, tempindex);
-    double min = calc_min(inputdata, tempindex);
-    double avg = calc_avg(inputdata, tempindex);
+        }
 
-    printf("Max: %.2f\n",max);
-    printf("Min: %.2f\n",min);
-    printf("Avg: %.2f\n",avg);
-
-    write_file(max, min, avg);
+    //write_file(max, min, avg);
 
     //opstellen output MSG
     char outputstr[OUTPUTSTR_LEN];
@@ -151,6 +170,4 @@ int main(){
     MQTTClient_disconnect(client, 10000);
     MQTTClient_destroy(&client);
     return rc;
-
-    return(0);
 }
